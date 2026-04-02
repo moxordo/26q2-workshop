@@ -1,0 +1,1186 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>26Q2 워크샵 — Foundation Group</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;700;900&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #000;
+    --fg: #fff;
+    --accent: #ff6b35;
+    --accent2: #7c4dff;
+    --muted: #888;
+    --slide-width: 100vw;
+    --slide-height: 100vh;
+  }
+
+  html, body {
+    width: 100%; height: 100%;
+    overflow: hidden;
+    background: var(--bg);
+    color: var(--fg);
+    font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
+  }
+
+  /* ── Slide container ── */
+  #deck {
+    position: relative;
+    width: 100%; height: 100%;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 80px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateX(40px);
+    text-align: center;
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+  }
+  .slide.exit-left {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+
+  /* ── Typography ── */
+  h1 {
+    font-size: clamp(2.5rem, 5vw, 4.5rem);
+    font-weight: 900;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+    margin-bottom: 0.3em;
+  }
+  h2 {
+    font-size: clamp(1.8rem, 3.5vw, 3rem);
+    font-weight: 900;
+    line-height: 1.3;
+    margin-bottom: 0.4em;
+  }
+  h3 {
+    font-size: clamp(1.2rem, 2vw, 1.8rem);
+    font-weight: 700;
+    line-height: 1.4;
+    margin-bottom: 0.3em;
+  }
+  .subtitle {
+    font-size: clamp(1rem, 2vw, 1.6rem);
+    font-weight: 700;
+    line-height: 1.5;
+    color: var(--fg);
+    max-width: 800px;
+  }
+  .muted { color: var(--muted); }
+  .accent { color: var(--accent); }
+  .accent2 { color: var(--accent2); }
+  .small { font-size: clamp(0.85rem, 1.2vw, 1.1rem); color: var(--muted); margin-top: 1em; }
+  .tag {
+    display: inline-block;
+    background: rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 4px 14px;
+    font-size: 0.9rem;
+    margin: 4px;
+    font-weight: 400;
+  }
+
+  /* ── Emoji hero ── */
+  .emoji-hero {
+    font-size: clamp(4rem, 10vw, 10rem);
+    line-height: 1;
+    margin-bottom: 0.2em;
+    filter: drop-shadow(0 0 40px rgba(255,255,255,0.15));
+  }
+  .emoji-row {
+    font-size: clamp(2.5rem, 5vw, 5rem);
+    display: flex;
+    gap: 0.5em;
+    justify-content: center;
+    margin-bottom: 0.4em;
+  }
+
+  /* ── Metric cards ── */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 24px;
+    width: 100%;
+    max-width: 900px;
+    margin-top: 1em;
+  }
+  .metric-card {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 16px;
+    padding: 28px 24px;
+    text-align: center;
+    transition: transform 0.3s, background 0.3s;
+  }
+  .metric-card:hover {
+    transform: translateY(-4px);
+    background: rgba(255,255,255,0.08);
+  }
+  .metric-card .label {
+    font-size: 0.9rem;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .metric-card .value {
+    font-size: 2.2rem;
+    font-weight: 900;
+  }
+  .metric-card .delta {
+    font-size: 0.85rem;
+    margin-top: 6px;
+  }
+  .delta.good { color: #4caf50; }
+  .delta.bad { color: #f44336; }
+  .delta.neutral { color: var(--muted); }
+
+  /* ── Three-column layout ── */
+  .three-col {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 32px;
+    width: 100%;
+    max-width: 1000px;
+    margin-top: 1.5em;
+  }
+  .col-card {
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 16px;
+    padding: 32px 24px;
+    text-align: left;
+    transition: border-color 0.3s;
+  }
+  .col-card:hover { border-color: rgba(255,255,255,0.25); }
+  .col-card .col-icon { font-size: 2.2rem; margin-bottom: 12px; }
+  .col-card .col-title {
+    font-size: 1.1rem;
+    font-weight: 900;
+    margin-bottom: 12px;
+  }
+  .col-card ul {
+    list-style: none;
+    font-size: 0.9rem;
+    color: #ccc;
+    line-height: 1.8;
+  }
+  .col-card ul li::before {
+    content: "→ ";
+    color: var(--muted);
+  }
+
+  /* ── Timeline / list ── */
+  .timeline {
+    text-align: left;
+    max-width: 700px;
+    width: 100%;
+    margin-top: 1em;
+  }
+  .timeline-item {
+    display: flex;
+    gap: 16px;
+    margin-bottom: 20px;
+    align-items: flex-start;
+  }
+  .timeline-dot {
+    width: 12px; height: 12px;
+    border-radius: 50%;
+    background: var(--accent);
+    margin-top: 6px;
+    flex-shrink: 0;
+  }
+  .timeline-dot.purple { background: var(--accent2); }
+  .timeline-dot.green { background: #4caf50; }
+  .timeline-content { font-size: 1rem; line-height: 1.6; }
+  .timeline-content strong { font-weight: 700; }
+  .timeline-content .detail { color: var(--muted); font-size: 0.85rem; }
+
+  /* ── Diagram: triangle ── */
+  .triangle-diagram {
+    position: relative;
+    width: 320px;
+    height: 280px;
+    margin: 1em auto;
+  }
+  .triangle-diagram svg { width: 100%; height: 100%; }
+  .tri-label {
+    position: absolute;
+    font-weight: 900;
+    font-size: 1rem;
+  }
+
+  /* ── Cost breakdown bars ── */
+  .bar-chart {
+    width: 100%;
+    max-width: 700px;
+    margin-top: 1.5em;
+  }
+  .bar-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+  .bar-label {
+    width: 140px;
+    text-align: right;
+    font-size: 0.9rem;
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+  .bar-track {
+    flex: 1;
+    height: 28px;
+    background: rgba(255,255,255,0.06);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+  }
+  .bar-fill {
+    height: 100%;
+    border-radius: 14px;
+    transition: width 1s ease;
+    width: 0;
+  }
+  .active .bar-fill { width: var(--w); }
+  .bar-fill.orange { background: linear-gradient(90deg, #ff6b35, #ff9a6c); }
+  .bar-fill.purple { background: linear-gradient(90deg, #7c4dff, #b47cff); }
+  .bar-fill.green { background: linear-gradient(90deg, #4caf50, #81c784); }
+  .bar-fill.red { background: linear-gradient(90deg, #f44336, #e57373); }
+  .bar-value {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 0.8rem;
+    font-weight: 700;
+  }
+
+  /* ── Big quote ── */
+  .big-quote {
+    font-size: clamp(1.5rem, 3vw, 2.8rem);
+    font-weight: 900;
+    line-height: 1.4;
+    max-width: 800px;
+    position: relative;
+  }
+  .big-quote::before {
+    content: '"';
+    position: absolute;
+    left: -0.6em;
+    top: -0.1em;
+    font-size: 4em;
+    color: rgba(255,255,255,0.08);
+    font-weight: 900;
+  }
+
+  /* ── Progress bar ── */
+  #progress {
+    position: fixed;
+    top: 0; left: 0;
+    height: 3px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+    transition: width 0.4s ease;
+    z-index: 1000;
+  }
+
+  /* ── Slide counter ── */
+  #counter {
+    position: fixed;
+    bottom: 24px;
+    right: 32px;
+    font-size: 0.8rem;
+    color: var(--muted);
+    z-index: 1000;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ── Section label ── */
+  .section-label {
+    position: absolute;
+    top: 32px;
+    left: 40px;
+    font-size: 0.75rem;
+    color: var(--muted);
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+  }
+
+  /* ── Nav hint ── */
+  #nav-hint {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    font-size: 0.75rem;
+    color: rgba(255,255,255,0.2);
+    z-index: 1000;
+    transition: opacity 2s;
+  }
+
+  /* ── Animations ── */
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(30px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .slide.active .animate {
+    animation: fadeInUp 0.6s ease forwards;
+  }
+  .slide.active .animate.d1 { animation-delay: 0.1s; opacity: 0; }
+  .slide.active .animate.d2 { animation-delay: 0.25s; opacity: 0; }
+  .slide.active .animate.d3 { animation-delay: 0.4s; opacity: 0; }
+  .slide.active .animate.d4 { animation-delay: 0.55s; opacity: 0; }
+  .slide.active .animate.d5 { animation-delay: 0.7s; opacity: 0; }
+
+  /* ── Health Check Chart ── */
+  .hc-chart-area {
+    width: 100%;
+    max-width: 900px;
+    margin-top: 1em;
+  }
+  .hc-chart {
+    position: relative;
+    width: 100%;
+    height: 260px;
+    border-left: 1px solid rgba(255,255,255,0.15);
+    border-bottom: 1px solid rgba(255,255,255,0.15);
+    margin-bottom: 8px;
+  }
+  .hc-chart .y-label {
+    position: absolute;
+    left: -36px;
+    font-size: 0.65rem;
+    color: var(--muted);
+    transform: translateY(50%);
+  }
+  .hc-chart .gridline {
+    position: absolute;
+    left: 0; right: 0;
+    border-top: 1px dashed rgba(255,255,255,0.06);
+  }
+  .hc-line {
+    position: absolute;
+    inset: 0;
+  }
+  .hc-line svg { width: 100%; height: 100%; overflow: visible; }
+  .hc-line polyline {
+    fill: none;
+    stroke-width: 2.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .hc-line circle {
+    r: 5;
+    stroke-width: 2;
+    cursor: pointer;
+    transition: r 0.2s;
+  }
+  .hc-line circle:hover { r: 8; }
+  .hc-x-labels {
+    display: flex;
+    justify-content: space-between;
+    padding: 0 2%;
+    font-size: 0.7rem;
+    color: var(--muted);
+  }
+  .hc-legend {
+    display: flex;
+    gap: 20px;
+    justify-content: center;
+    margin-top: 16px;
+    flex-wrap: wrap;
+  }
+  .hc-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 0.75rem;
+    color: #ccc;
+    cursor: pointer;
+    transition: opacity 0.3s;
+  }
+  .hc-legend-item.dimmed { opacity: 0.25; }
+  .hc-legend-dot {
+    width: 10px; height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+  .hc-annotation {
+    position: absolute;
+    background: rgba(30,30,30,0.95);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    color: #ddd;
+    max-width: 200px;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+  }
+  .hc-annotation::after {
+    content: '';
+    position: absolute;
+    bottom: -6px;
+    left: 50%;
+    transform: translateX(-50%) rotate(45deg);
+    width: 10px; height: 10px;
+    background: rgba(30,30,30,0.95);
+    border-right: 1px solid rgba(255,255,255,0.2);
+    border-bottom: 1px solid rgba(255,255,255,0.2);
+  }
+  .hc-crisis-band {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: rgba(244,67,54,0.08);
+    border-left: 1px dashed rgba(244,67,54,0.3);
+    border-right: 1px dashed rgba(244,67,54,0.3);
+  }
+  .hc-golden-band {
+    position: absolute;
+    top: 0; bottom: 0;
+    background: rgba(76,175,80,0.06);
+    border-left: 1px dashed rgba(76,175,80,0.2);
+    border-right: 1px dashed rgba(76,175,80,0.2);
+  }
+  .hc-band-label {
+    position: absolute;
+    top: 8px;
+    font-size: 0.6rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
+  }
+
+  /* ── Detail table for health check ── */
+  .hc-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    max-width: 900px;
+    width: 100%;
+    margin-top: 1em;
+  }
+  .hc-week-card {
+    background: rgba(255,255,255,0.03);
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 12px;
+    padding: 16px;
+    text-align: left;
+    font-size: 0.75rem;
+    line-height: 1.6;
+    transition: border-color 0.3s;
+  }
+  .hc-week-card:hover { border-color: rgba(255,255,255,0.2); }
+  .hc-week-card.crisis {
+    border-color: rgba(244,67,54,0.4);
+    background: rgba(244,67,54,0.05);
+  }
+  .hc-week-card.golden {
+    border-color: rgba(76,175,80,0.3);
+    background: rgba(76,175,80,0.04);
+  }
+  .hc-week-card .wk-title {
+    font-weight: 900;
+    font-size: 0.85rem;
+    margin-bottom: 6px;
+  }
+  .hc-week-card .wk-badge {
+    display: inline-block;
+    font-size: 0.6rem;
+    padding: 2px 8px;
+    border-radius: 4px;
+    font-weight: 700;
+    margin-bottom: 8px;
+  }
+  .wk-badge.red { background: rgba(244,67,54,0.2); color: #f44336; }
+  .wk-badge.green { background: rgba(76,175,80,0.2); color: #4caf50; }
+  .wk-badge.blue { background: rgba(124,77,255,0.2); color: #b47cff; }
+  .hc-week-card .wk-stat {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+  }
+  .hc-week-card .wk-stat span:last-child { font-weight: 700; color: #ccc; }
+
+  /* ── Responsive ── */
+  @media (max-width: 768px) {
+    .slide { padding: 40px 24px; }
+    .three-col { grid-template-columns: 1fr; gap: 16px; }
+    .metrics { grid-template-columns: 1fr 1fr; }
+    .hc-detail-grid { grid-template-columns: repeat(2, 1fr); }
+  }
+
+  /* ── Pillar highlight ── */
+  .pillar-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    max-width: 800px;
+    width: 100%;
+    margin-top: 1.5em;
+  }
+  .pillar {
+    border-radius: 20px;
+    padding: 36px 24px;
+    text-align: center;
+    border: 2px solid transparent;
+    transition: transform 0.3s, border-color 0.3s;
+  }
+  .pillar:hover { transform: scale(1.04); }
+  .pillar .p-icon { font-size: 3rem; margin-bottom: 12px; }
+  .pillar .p-name { font-size: 1.3rem; font-weight: 900; }
+  .pillar .p-sub { font-size: 0.85rem; color: var(--muted); margin-top: 8px; }
+  .pillar.stability {
+    background: rgba(76,175,80,0.08);
+    border-color: rgba(76,175,80,0.3);
+  }
+  .pillar.productivity {
+    background: rgba(124,77,255,0.08);
+    border-color: rgba(124,77,255,0.3);
+  }
+  .pillar.cost {
+    background: rgba(255,107,53,0.08);
+    border-color: rgba(255,107,53,0.3);
+  }
+
+  /* ── Focus highlight for planning ── */
+  .focus-ring {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 180px; height: 180px;
+    border-radius: 50%;
+    border: 4px solid var(--accent);
+    position: relative;
+  }
+  .focus-ring .inner {
+    font-size: 4rem;
+  }
+  .focus-ring::after {
+    content: '';
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    border: 2px dashed rgba(255,107,53,0.3);
+    animation: spin 20s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── VS layout ── */
+  .vs-layout {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    gap: 32px;
+    align-items: center;
+    max-width: 900px;
+    width: 100%;
+    margin-top: 1.5em;
+  }
+  .vs-side {
+    text-align: center;
+    padding: 24px;
+  }
+  .vs-divider {
+    font-size: 2rem;
+    font-weight: 900;
+    color: var(--muted);
+  }
+</style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="counter"></div>
+<div id="nav-hint">← → 키로 이동 · F 전체화면</div>
+
+<div id="deck">
+
+  <!-- ====== SLIDE 1: Title ====== -->
+  <div class="slide" data-section="">
+    <div class="emoji-hero animate d1">🏗️</div>
+    <h1 class="animate d2">Foundation Group</h1>
+    <h2 class="animate d3" style="font-weight:400; color: var(--muted);">26Q2 워크샵</h2>
+    <p class="small animate d4">2026. Q2</p>
+  </div>
+
+  <!-- ====== SLIDE 2: Agenda ====== -->
+  <div class="slide" data-section="">
+    <h2 class="animate d1">오늘의 순서</h2>
+    <div class="three-col animate d2" style="margin-top: 2em;">
+      <div class="col-card">
+        <div class="col-icon">📊</div>
+        <div class="col-title">지표 및 성과 리뷰</div>
+        <ul><li>안정성 지표</li><li>생산성 지표</li><li>기타 이니셔티브</li></ul>
+        <p class="small">5분</p>
+      </div>
+      <div class="col-card">
+        <div class="col-icon">🔄</div>
+        <div class="col-title">레트로</div>
+        <ul><li>Retro 하이라이트</li><li>Health Check 리뷰</li></ul>
+        <p class="small">5분</p>
+      </div>
+      <div class="col-card">
+        <div class="col-icon">🗺️</div>
+        <div class="col-title">플래닝</div>
+        <ul><li>비용 최적화</li><li>주요 이니셔티브</li></ul>
+        <p class="small">5분</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION: 지표 및 성과 리뷰 ====== -->
+
+  <!-- SLIDE 3: Section title -->
+  <div class="slide" data-section="지표 및 성과 리뷰">
+    <p class="muted animate d1" style="font-size:1rem; letter-spacing:0.15em; text-transform:uppercase;">PART 1</p>
+    <h1 class="animate d2">지표 및 성과 리뷰</h1>
+    <div class="emoji-row animate d3">
+      <span>📈</span><span>🔥</span><span>🛡️</span>
+    </div>
+    <p class="subtitle animate d4">1분기 지표를 리뷰를 해보며...<br>안정성이 꽤나 많이 개선이 된 점</p>
+  </div>
+
+  <!-- SLIDE 4: 안정성 overview -->
+  <div class="slide" data-section="지표 및 성과 리뷰">
+    <div class="section-label">안정성</div>
+    <h2 class="animate d1">🛡️ 안정성</h2>
+    <p class="subtitle animate d2">Under the hood로 어떤 작업들이 있었는지</p>
+    <div class="pillar-grid animate d3" style="margin-top: 2em;">
+      <div class="pillar stability">
+        <div class="p-icon">🔍</div>
+        <div class="p-name">MTTD</div>
+        <div class="p-sub">불을 발견했는가?</div>
+      </div>
+      <div class="pillar stability">
+        <div class="p-icon">🧯</div>
+        <div class="p-name">MTTR</div>
+        <div class="p-sub">불을 껐는가?</div>
+      </div>
+      <div class="pillar stability">
+        <div class="p-icon">📟</div>
+        <div class="p-name">온콜 프로세스</div>
+        <div class="p-sub">체계적 대응</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 5: 온콜 프로세스 추억팔이 -->
+  <div class="slide" data-section="지표 및 성과 리뷰">
+    <div class="section-label">안정성 › 온콜</div>
+    <h2 class="animate d1">온콜 프로세스의 진화</h2>
+    <div class="emoji-hero animate d2">🌙</div>
+    <div class="big-quote animate d3">
+      크리스 / 앤디 체제 추억팔이
+    </div>
+    <p class="subtitle animate d4" style="margin-top: 0.5em; color: var(--muted); font-weight: 400;">
+      수면 시간이 기가막히게도 서로 겹치지 않았기에<br>
+      사실상 <span class="accent" style="font-weight:900;">100% 시간 커버리지</span>가 가능했다
+    </p>
+    <p class="small animate d5">(22시~5시 vs 5시~10시)</p>
+  </div>
+
+  <!-- SLIDE 6: 서버 장애 자동 사냥 + Aqueduct -->
+  <div class="slide" data-section="지표 및 성과 리뷰">
+    <div class="section-label">안정성 › 자동화</div>
+    <h2 class="animate d1">지금은?</h2>
+    <div class="vs-layout animate d2">
+      <div class="vs-side">
+        <div style="font-size:3rem; margin-bottom:12px;">🤖</div>
+        <h3>서버 장애 자동 사냥</h3>
+        <p class="small" style="margin-top:8px;">자동 감지 & 알림</p>
+      </div>
+      <div class="vs-divider">+</div>
+      <div class="vs-side">
+        <div style="font-size:3rem; margin-bottom:12px;">💉</div>
+        <h3>Aqueduct 조영제</h3>
+        <p class="small" style="margin-top:8px;">서버 도달 → DW 도달<br>데이터 정합성 보장</p>
+      </div>
+    </div>
+    <p class="subtitle animate d3" style="margin-top: 2em;">
+      사람이 아닌 <span class="accent" style="font-weight:900;">시스템</span>이 지키는 안정성
+    </p>
+  </div>
+
+  <!-- SLIDE 7: 생산성 -->
+  <div class="slide" data-section="지표 및 성과 리뷰">
+    <div class="section-label">생산성</div>
+    <h2 class="animate d1">⚡ 생산성</h2>
+    <div class="metrics animate d2">
+      <div class="metric-card">
+        <div class="label">Ad Unit Management</div>
+        <div class="value accent">✅</div>
+        <div class="delta good">shipped</div>
+      </div>
+      <div class="metric-card">
+        <div class="label">Ad Creative Filtering</div>
+        <div class="value accent2">✅</div>
+        <div class="delta good">shipped</div>
+      </div>
+    </div>
+    <p class="small animate d3" style="max-width:600px;">
+      비즈니스 요구에 맞춘 도구들을 만들어내며 생산성 기여
+    </p>
+  </div>
+
+  <!-- SLIDE 8: 기타 이니셔티브 -->
+  <div class="slide" data-section="지표 및 성과 리뷰">
+    <div class="section-label">기타 이니셔티브</div>
+    <h2 class="animate d1">🚀 기타 이니셔티브들</h2>
+    <p class="subtitle animate d2" style="color: var(--muted); font-weight:400;">Q1에 진행된 다양한 개선 작업들</p>
+    <div class="timeline animate d3" style="margin-top: 2em;">
+      <div class="timeline-item">
+        <div class="timeline-dot"></div>
+        <div class="timeline-content"><strong>인프라 안정화</strong><br><span class="detail">이중화, 모니터링 강화</span></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot purple"></div>
+        <div class="timeline-content"><strong>데이터 파이프라인 개선</strong><br><span class="detail">Aqueduct 정합성 보장 체계</span></div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot green"></div>
+        <div class="timeline-content"><strong>개발 생산성 도구</strong><br><span class="detail">Ad 관련 관리 시스템 구축</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== SECTION: 레트로 ====== -->
+
+  <!-- SLIDE 9: Section title -->
+  <div class="slide" data-section="레트로">
+    <p class="muted animate d1" style="font-size:1rem; letter-spacing:0.15em; text-transform:uppercase;">PART 2</p>
+    <h1 class="animate d2">레트로</h1>
+    <div class="emoji-hero animate d3">🔄</div>
+  </div>
+
+  <!-- SLIDE 10: Retro Highlights -->
+  <div class="slide" data-section="레트로">
+    <div class="section-label">레트로 › 하이라이트</div>
+    <h2 class="animate d1">Retro 하이라이트</h2>
+    <p class="subtitle animate d2" style="color: var(--muted); font-weight:400;">6~7가지 highlighting</p>
+    <div style="margin-top: 2em; max-width: 600px; width: 100%;" class="animate d3">
+      <div style="display:flex; flex-wrap:wrap; justify-content:center; gap:8px;">
+        <span class="tag">💡 주요 인사이트 1</span>
+        <span class="tag">🎯 주요 인사이트 2</span>
+        <span class="tag">🔧 주요 인사이트 3</span>
+        <span class="tag">📊 주요 인사이트 4</span>
+        <span class="tag">🤝 주요 인사이트 5</span>
+        <span class="tag">⚡ 주요 인사이트 6</span>
+      </div>
+    </div>
+    <p class="small animate d4">
+      → Retro FigJam 보드에서 더 자세한 내용 확인
+    </p>
+  </div>
+
+  <!-- SLIDE 11: Health Check Chart -->
+  <div class="slide" data-section="레트로" id="hc-slide">
+    <div class="section-label">레트로 › 헬스체크</div>
+    <h2 class="animate d1">Health Check로 보는 우리팀의 리듬</h2>
+    <p class="subtitle animate d2" style="color: var(--muted); font-weight:400; font-size:0.95rem;">팀 평균 · 26Q1 주간 데이터</p>
+
+    <div class="hc-chart-area animate d3">
+      <div class="hc-chart" id="hcChart">
+        <!-- Y-axis labels -->
+        <span class="y-label" style="bottom:100%;">100%</span>
+        <span class="y-label" style="bottom:75%;">75%</span>
+        <span class="y-label" style="bottom:50%;">50%</span>
+        <span class="y-label" style="bottom:25%;">25%</span>
+        <span class="y-label" style="bottom:0%;">0%</span>
+        <!-- Grid lines -->
+        <div class="gridline" style="bottom:75%;"></div>
+        <div class="gridline" style="bottom:50%;"></div>
+        <div class="gridline" style="bottom:25%;"></div>
+        <!-- Crisis band: Mar 6 (index 5 of 8 = ~62.5%) -->
+        <div class="hc-golden-band" style="left:18%;width:14%;">
+          <span class="hc-band-label" style="color:rgba(76,175,80,0.6);">안정기</span>
+        </div>
+        <div class="hc-crisis-band" style="left:60%;width:10%;">
+          <span class="hc-band-label" style="color:rgba(244,67,54,0.6);">위기</span>
+        </div>
+        <!-- SVG chart lines rendered by JS -->
+        <div class="hc-line" id="hcLines"></div>
+      </div>
+      <div class="hc-x-labels">
+        <span>1/9</span><span>1/16</span><span>1/23</span><span>2/6</span><span>2/13</span><span>3/6</span><span>3/13</span><span>3/20</span>
+      </div>
+      <div class="hc-legend" id="hcLegend"></div>
+    </div>
+  </div>
+
+  <!-- SLIDE 12: Health Check Detail annotations -->
+  <div class="slide" data-section="레트로">
+    <div class="section-label">레트로 › 헬스체크 상세</div>
+    <h2 class="animate d1" style="font-size: clamp(1.4rem,2.5vw,2rem);">주요 변곡점</h2>
+    <div class="hc-detail-grid animate d2">
+
+      <div class="hc-week-card golden">
+        <div class="wk-title">1월 초 · 분기 시작</div>
+        <span class="wk-badge green">최고 Fun 93%</span>
+        <div class="wk-stat"><span>회오리</span><span>17%</span></div>
+        <div class="wk-stat"><span>과업 목표</span><span>63%</span></div>
+        <div style="margin-top:8px; color:#aaa; font-size:0.7rem;">
+          분기 플래닝 직후라 과업 얼라인이 잘 된 상태.<br>
+          Ad Unit 자동화 & DARO 멀티리전 킥오프.
+        </div>
+      </div>
+
+      <div class="hc-week-card golden">
+        <div class="wk-title">2월 초 · 안정기</div>
+        <span class="wk-badge green">최저 회오리 13%</span>
+        <div class="wk-stat"><span>여백</span><span>11%</span></div>
+        <div class="wk-stat"><span>Fun</span><span>86~90%</span></div>
+        <div style="margin-top:8px; color:#aaa; font-size:0.7rem;">
+          Ad Unit 자동화 결실 단계.<br>
+          DARO 멀티리전 인프라 완료.<br>
+          "성과가 눈에 보이니 재미 👍"
+        </div>
+      </div>
+
+      <div class="hc-week-card crisis">
+        <div class="wk-title">3/6 · 위기의 한 주</div>
+        <span class="wk-badge red">회오리 46% 급등</span>
+        <div class="wk-stat"><span>과업 목표</span><span style="color:#f44336;">40%</span></div>
+        <div class="wk-stat"><span>여백</span><span style="color:#f44336;">3%</span></div>
+        <div class="wk-stat"><span>Fun</span><span style="color:#f44336;">69%</span></div>
+        <div style="margin-top:8px; color:#aaa; font-size:0.7rem;">
+          전원 30~60% 회오리 돌입.<br>
+          생산성 0%인 멤버까지 발생.<br>
+          여백 사실상 소진 — 긴급 대응 모드.
+        </div>
+      </div>
+
+      <div class="hc-week-card">
+        <div class="wk-title">3월 중후반 · 회복</div>
+        <span class="wk-badge blue">점진적 안정화</span>
+        <div class="wk-stat"><span>회오리</span><span>33% → 33%</span></div>
+        <div class="wk-stat"><span>Fun</span><span>78% → 83%</span></div>
+        <div style="margin-top:8px; color:#aaa; font-size:0.7rem;">
+          회오리 여전히 높지만 Fun 회복 중.<br>
+          과업 목표 50% 수준으로 복귀.<br>
+          여백도 서서히 돌아옴.
+        </div>
+      </div>
+
+    </div>
+    <p class="small animate d3" style="max-width:700px; margin-top:1.5em;">
+      💡 3월 위기는 분기 말 운영 이슈 집중 + 예정 외 장애 대응이 겹친 결과.<br>
+      → Q2 플래닝에서 <span style="color:var(--accent); font-weight:700;">비용 최적화를 통한 운영 부담 경감</span>이 키 테마가 된 배경.
+    </p>
+  </div>
+
+  <!-- ====== SECTION: 플래닝 ====== -->
+
+  <!-- SLIDE 12: Section title -->
+  <div class="slide" data-section="플래닝">
+    <p class="muted animate d1" style="font-size:1rem; letter-spacing:0.15em; text-transform:uppercase;">PART 3</p>
+    <h1 class="animate d2">플래닝</h1>
+    <div class="emoji-hero animate d3">🗺️</div>
+  </div>
+
+  <!-- SLIDE 13: 안정성 → 비용 전환 -->
+  <div class="slide" data-section="플래닝">
+    <div class="section-label">플래닝 › 방향</div>
+    <h2 class="animate d1">안정성 · 생산성 · 비용의 관계</h2>
+    <p class="subtitle animate d2" style="margin-top: 0.5em; color: var(--muted); font-weight:400;">
+      안정성을 잘 챙겼지만... 그 다음은?
+    </p>
+    <div class="pillar-grid animate d3" style="margin-top: 1.5em;">
+      <div class="pillar stability" style="opacity: 0.5;">
+        <div class="p-icon">🛡️</div>
+        <div class="p-name">안정성</div>
+        <div class="p-sub">✅ Q1 달성</div>
+      </div>
+      <div class="pillar productivity" style="opacity: 0.5;">
+        <div class="p-icon">⚡</div>
+        <div class="p-name">생산성</div>
+        <div class="p-sub">✅ 진행 중</div>
+      </div>
+      <div class="pillar cost">
+        <div class="p-icon">💰</div>
+        <div class="p-name">비용</div>
+        <div class="p-sub" style="color: var(--accent);">🎯 Q2 Focus</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 14: 비용 왜? -->
+  <div class="slide" data-section="플래닝">
+    <div class="section-label">플래닝 › 비용</div>
+    <div class="big-quote animate d1">
+      그럼 업계에서는 대체적으로<br>인프라/데이터 비용에<br>어느 정도 소비하나요?
+    </div>
+    <p class="subtitle animate d2" style="margin-top: 1.5em; color: var(--muted); font-weight: 400;">
+      이미 괜찮은 수준 아닌가요?
+    </p>
+  </div>
+
+  <!-- SLIDE 15: 비용의 위험 -->
+  <div class="slide" data-section="플래닝">
+    <div class="section-label">플래닝 › 비용</div>
+    <h2 class="animate d1">🤔 왜 비용을 잡아야 하는가?</h2>
+    <div class="timeline animate d2" style="margin-top: 2em;">
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: #f44336;"></div>
+        <div class="timeline-content">
+          <strong>비용이 얼마나 빨리 불어날 수 있는 지</strong>
+          <div class="detail">스케일에 비례하지 않는 비선형 증가</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: #ff9800;"></div>
+        <div class="timeline-content">
+          <strong>"유저 인당" 발생하는 매출을 생각해야 한다</strong>
+          <div class="detail">비용이 매출 대비 어떤 비율인지가 핵심</div>
+        </div>
+      </div>
+      <div class="timeline-item">
+        <div class="timeline-dot" style="background: #f44336;"></div>
+        <div class="timeline-content">
+          <strong>안정성의 downside: 비용이 늘 수 밖에 없다</strong>
+          <div class="detail">이중화, 삼중화 → 비용 증가는 필연적</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 16: 어떤 맥락으로? -->
+  <div class="slide" data-section="플래닝">
+    <div class="section-label">플래닝 › 전략</div>
+    <h2 class="animate d1">어떤 맥락으로 비용을 잡을 예정인가?</h2>
+    <div class="vs-layout animate d2" style="margin-top: 2em;">
+      <div class="vs-side">
+        <div style="font-size:3rem; margin-bottom:12px;">🗑️</div>
+        <h3>Dead-weight 줄이기</h3>
+        <div class="timeline" style="margin-top:1em;">
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:#f44336;"></div>
+            <div class="timeline-content"><span class="detail">안 쓰는거</span></div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:#ff9800;"></div>
+            <div class="timeline-content"><span class="detail">덜 중요한거</span></div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot" style="background:#ffc107;"></div>
+            <div class="timeline-content"><span class="detail">안 보는거</span></div>
+          </div>
+        </div>
+      </div>
+      <div class="vs-divider">+</div>
+      <div class="vs-side">
+        <div style="font-size:3rem; margin-bottom:12px;">📐</div>
+        <h3>Over-provisioning 줄이기</h3>
+        <div class="timeline" style="margin-top:1em;">
+          <div class="timeline-item">
+            <div class="timeline-dot green"></div>
+            <div class="timeline-content"><span class="detail">CPU 남는거</span></div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot green"></div>
+            <div class="timeline-content"><span class="detail">메모리 남는거</span></div>
+          </div>
+          <div class="timeline-item">
+            <div class="timeline-dot green"></div>
+            <div class="timeline-content"><span class="detail">기타 리소스</span></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 17: 주요 이니셔티브 -->
+  <div class="slide" data-section="플래닝">
+    <div class="section-label">플래닝 › 이니셔티브</div>
+    <h2 class="animate d1">🎯 주요 이니셔티브</h2>
+    <p class="subtitle animate d2" style="color: var(--muted); font-weight:400;">Q2에 집중할 핵심 과제들</p>
+    <div class="three-col animate d3" style="margin-top: 1.5em;">
+      <div class="col-card" style="border-color: rgba(255,107,53,0.3);">
+        <div class="col-icon">💰</div>
+        <div class="col-title" style="color: var(--accent);">비용 최적화</div>
+        <ul>
+          <li>Dead-weight 제거</li>
+          <li>Over-provisioning 해소</li>
+          <li>비용 모니터링 체계</li>
+        </ul>
+      </div>
+      <div class="col-card" style="border-color: rgba(76,175,80,0.3);">
+        <div class="col-icon">🛡️</div>
+        <div class="col-title" style="color: #4caf50;">안정성 유지</div>
+        <ul>
+          <li>기존 체계 운영</li>
+          <li>자동화 고도화</li>
+          <li>모니터링 확대</li>
+        </ul>
+      </div>
+      <div class="col-card" style="border-color: rgba(124,77,255,0.3);">
+        <div class="col-icon">⚡</div>
+        <div class="col-title" style="color: var(--accent2);">생산성 지속</div>
+        <ul>
+          <li>개발 도구 개선</li>
+          <li>반복 작업 자동화</li>
+          <li>플랫폼 역량 강화</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SLIDE 18: Closing -->
+  <div class="slide" data-section="">
+    <div class="emoji-hero animate d1">🏗️</div>
+    <h1 class="animate d2">Q&A</h1>
+    <p class="subtitle animate d3" style="color: var(--muted); font-weight: 400;">Foundation Group · 26Q2</p>
+  </div>
+
+</div>
+
+<script>
+/* ── Health Check Chart ── */
+(function buildHCChart() {
+  const weeks = ['1/9','1/16','1/23','2/6','2/13','3/6','3/13','3/20'];
+  const series = {
+    '과업 목표': { color: '#4caf50', data: [63.3, 51.3, 56.3, 55.0, 58.8, 40.0, 51.3, 50.0] },
+    '회오리':    { color: '#f44336', data: [16.7, 26.3, 22.5, 17.5, 12.5, 46.3, 32.5, 32.5] },
+    'Fun':       { color: '#ffc107', data: [93.3, 80.0, 88.8, 90.0, 86.3, 68.8, 78.3, 82.5] },
+    '생산성':    { color: '#7c4dff', data: [10.0, 12.5, 14.8, 18.8, 17.5, 11.3, 10.0,  8.8] },
+    '여백':      { color: '#29b6f6', data: [10.0, 10.0,  6.5,  8.8, 11.3,  2.5,  6.3,  8.8] },
+  };
+
+  const container = document.getElementById('hcLines');
+  const legend = document.getElementById('hcLegend');
+  if (!container || !legend) return;
+
+  const n = weeks.length;
+  const pad = 3; // percent padding on each side
+  const active = {};
+
+  function xPct(i) { return pad + (i / (n - 1)) * (100 - 2 * pad); }
+  function yPct(v) { return 100 - v; }
+
+  function render() {
+    const box = container.getBoundingClientRect();
+    const w = box.width || 900, h = box.height || 260;
+    let svg = `<svg viewBox="0 0 ${w} ${h}" preserveAspectRatio="none" style="overflow:visible;">`;
+    for (const [name, s] of Object.entries(series)) {
+      if (active[name] === false) continue;
+      const pts = s.data.map((v, i) => `${(xPct(i)/100)*w},${(yPct(v)/100)*h}`).join(' ');
+      svg += `<polyline points="${pts}" stroke="${s.color}" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`;
+      s.data.forEach((v, i) => {
+        const cx = (xPct(i)/100)*w, cy = (yPct(v)/100)*h;
+        svg += `<circle cx="${cx}" cy="${cy}" r="4" fill="${s.color}" stroke="#000" stroke-width="1.5"><title>${name} ${weeks[i]}: ${v}%</title></circle>`;
+      });
+    }
+    svg += '</svg>';
+    container.innerHTML = svg;
+  }
+
+  // Build legend
+  for (const [name, s] of Object.entries(series)) {
+    active[name] = true;
+    const el = document.createElement('div');
+    el.className = 'hc-legend-item';
+    el.innerHTML = `<span class="hc-legend-dot" style="background:${s.color}"></span>${name}`;
+    el.addEventListener('click', () => {
+      active[name] = !active[name];
+      el.classList.toggle('dimmed', !active[name]);
+      render();
+    });
+    legend.appendChild(el);
+  }
+  render();
+})();
+
+/* ── Slide Navigation ── */
+(function() {
+  const slides = [...document.querySelectorAll('.slide')];
+  const total = slides.length;
+  const progress = document.getElementById('progress');
+  const counter = document.getElementById('counter');
+  const navHint = document.getElementById('nav-hint');
+  let current = 0;
+
+  function go(index) {
+    if (index < 0 || index >= total) return;
+    const prev = current;
+    current = index;
+
+    slides.forEach((s, i) => {
+      s.classList.remove('active', 'exit-left');
+      if (i < current) s.classList.add('exit-left');
+    });
+    slides[current].classList.add('active');
+
+    // progress
+    progress.style.width = ((current / (total - 1)) * 100) + '%';
+    counter.textContent = (current + 1) + ' / ' + total;
+
+    // hide nav hint after first navigation
+    if (current > 0) navHint.style.opacity = '0';
+
+    // update URL hash
+    history.replaceState(null, '', '#' + (current + 1));
+  }
+
+  // Keyboard
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault(); go(current + 1);
+    }
+    if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault(); go(current - 1);
+    }
+    if (e.key === 'Home') { e.preventDefault(); go(0); }
+    if (e.key === 'End') { e.preventDefault(); go(total - 1); }
+    if (e.key === 'f' || e.key === 'F') {
+      if (!document.fullscreenElement) {
+        document.documentElement.requestFullscreen();
+      } else {
+        document.exitFullscreen();
+      }
+    }
+  });
+
+  // Touch
+  let touchX = 0;
+  document.addEventListener('touchstart', (e) => { touchX = e.touches[0].clientX; });
+  document.addEventListener('touchend', (e) => {
+    const dx = e.changedTouches[0].clientX - touchX;
+    if (dx < -50) go(current + 1);
+    if (dx > 50) go(current - 1);
+  });
+
+  // Click sides
+  document.addEventListener('click', (e) => {
+    const x = e.clientX / window.innerWidth;
+    if (x > 0.75) go(current + 1);
+    if (x < 0.25) go(current - 1);
+  });
+
+  // Hash navigation
+  const hash = parseInt(location.hash.replace('#', ''));
+  go(hash > 0 && hash <= total ? hash - 1 : 0);
+})();
+</script>
+</body>
+</html>
