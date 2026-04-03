@@ -1417,10 +1417,17 @@
     slides.forEach((s, i) => {
       s.classList.remove('active');
     });
+    // Unload images from ALL other slides to prevent bleed-through
+    var BLANK = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+    slides.forEach(function(s, i) {
+      if (i !== current) {
+        s.querySelectorAll('img[data-src]').forEach(function(img) { img.src = BLANK; });
+      }
+    });
     slides[current].classList.add('active');
-    // Lazy-load images for this slide
-    slides[current].querySelectorAll('img[data-src]').forEach(img => {
-      if (img.src !== img.dataset.src) img.src = img.dataset.src;
+    // Load images for active slide only
+    slides[current].querySelectorAll('img[data-src]').forEach(function(img) {
+      img.src = img.dataset.src;
     });
 
     // progress
