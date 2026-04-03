@@ -611,23 +611,18 @@
     font-weight: 900;
     color: var(--muted);
   }
-</style>
-</head>
-<body>
 
-<div id="progress"></div>
-<div id="counter"></div>
-<div id="nav-hint">← → 키로 이동 · F 전체화면</div>
-
-<style>
   /* ── Slide images ── */
   .slide-img {
     max-width: 90%;
     max-height: 45vh;
+    width: auto;
+    height: auto;
     border-radius: 12px;
     box-shadow: 0 4px 30px rgba(0,0,0,0.5);
     margin: 0.8em 0;
     object-fit: contain;
+    display: block;
   }
   .slide-img.small {
     max-width: 60%;
@@ -651,6 +646,8 @@
   .two-img img {
     max-width: 48%;
     max-height: 40vh;
+    width: auto;
+    height: auto;
     border-radius: 12px;
     box-shadow: 0 4px 30px rgba(0,0,0,0.5);
     object-fit: contain;
@@ -675,6 +672,12 @@
   .retro-card ul { list-style: none; font-size: 0.8rem; color: #bbb; line-height: 1.7; }
   .retro-card ul li::before { content: "• "; color: var(--muted); }
 </style>
+</head>
+<body>
+
+<div id="progress"></div>
+<div id="counter"></div>
+<div id="nav-hint">← → 키로 이동 · F 전체화면</div>
 
 <div id="deck">
 
@@ -1317,25 +1320,6 @@
   <div class="slide" data-section="">
     <h2 class="animate d1">이번 분기도 고생 많으셨습니다!! 🎉</h2>
     <img src="img/team.jpg" class="slide-img animate d2" alt="Team photo" style="max-height:50vh; border-radius:20px;">
-  </div>
-
-  <!-- SLIDE 26: Cookie Quiz -->
-  <div class="slide" data-section="" id="quiz-slide">
-    <div class="emoji-hero animate d1">🍪</div>
-    <h1 class="animate d2">Cookie Quiz</h1>
-    <p class="subtitle animate d3" style="color: var(--muted); font-weight:400; max-width:500px;">
-      4명의 강점 프로필을 보고<br>각각 누구인지 맞춰보세요!
-    </p>
-    <a href="clifton_quiz.html" target="_blank"
-       class="animate d4"
-       style="display:inline-block; margin-top:1.5em; padding:16px 40px;
-              background:linear-gradient(135deg, #D4873A, #E8C87A);
-              color:#3A2010; font-weight:900; font-size:1.1rem;
-              border-radius:14px; text-decoration:none;
-              box-shadow: 0 4px 20px rgba(212,135,58,0.4);
-              transition: transform 0.2s, box-shadow 0.2s;">
-      퀴즈 시작하기 →
-    </a>
   </div>
 
   <!-- SLIDE 27: Q&A -->
